@@ -1,0 +1,217 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>PANEL DE USUARIO</title>
+		<link rel="stylesheet" type="text/css" href="css/usuario.css">
+	</head>
+	<body>
+		<div class="container">
+
+			<div class="recuadro">
+				<h2>PANEL DE USUARIO</h2>
+				<ul>
+					<span>Estado de los sensores</span>
+					<li>Temperatura: <p id="temperatura">25</p>ºC</li>
+					<li>Luminosidad: <p id="luminosidad">50</p></li>
+					<li>Cantidad humo: <p id="humo">0</p></li>
+				</ul>
+				
+				<ul>
+					<span>Estado de los actuadores</span>
+					<li>Aire acondicionado: <p id="estadoAire" class="off"> Apagado</p></li>
+					<li>Persiana: <p id="estadoPersiana" class="off"> Apagado</p></li>
+					<li>Sistema Antiincendios: <p id="estadoAntiincendios" class="off"> Apagado</p></li>
+				</ul>
+			</div>
+			
+			<div class="form-container">
+				<form onclick="bajarPersiana()">
+					<input type="button" value="Interruptor Persiana"></input>
+				</form>
+				<form onclick="apagarAireAcondicionado()">
+					<input type="button" value="Interruptor Aire acondicionado"></input>
+				</form>
+				<form onclick="apagarSistemaIncendios()">
+					<input type="button" value="Interruptor Sistema Antiincendios"></input>
+				</form>
+			</div>
+
+			<div class="container2">
+				<div class="recuadro2">
+					<span>Historial</span>
+					<ul class="historial" id="historial">
+						<li>- Vacío -</li>
+					</ul>
+				</div>
+			
+				<div class="recuadro2">
+					<span>Alarmas</span>
+					<ul class="alarmas" id="alarmas">
+						<li>- Vacío -</li>
+					</ul>
+				</div>
+			</div>
+			
+		</div>
+	</body>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+
+		var socket = io.connect("http://localhost:8080");
+		var host = undefined;
+		var port = undefined;
+		var id = undefined;
+		var aireacondicionado;
+		var persiana;
+		var antiincendios;
+
+
+		function actualizarValores(resultados){
+			document.getElementById('temperatura').innerHTML = resultados.temperatura ;
+			document.getElementById('luminosidad').innerHTML = resultados.luminosidad ;
+			document.getElementById('humo').innerHTML = resultados.humo ;
+
+ 			aireacondicionado = resultados.estadoAC;
+			if(resultados.estadoAC){
+				document.getElementById('estadoAire').classList.remove('off');
+				document.getElementById('estadoAire').classList.add('on');
+				document.getElementById('estadoAire').textContent = 'Encendido';
+			}else{
+				document.getElementById('estadoAire').classList.remove('on');
+				document.getElementById('estadoAire').classList.add('off');
+				document.getElementById('estadoAire').textContent = 'Apagado';
+			}
+
+			persiana = resultados.estadoPersiana;
+			if(resultados.estadoPersiana){
+				document.getElementById('estadoPersiana').classList.remove('off');
+				document.getElementById('estadoPersiana').classList.add('on');
+				document.getElementById('estadoPersiana').textContent = 'Cerrada';
+			}else{
+				document.getElementById('estadoPersiana').classList.remove('on');
+				document.getElementById('estadoPersiana').classList.add('off');
+				document.getElementById('estadoPersiana').textContent = 'Abierta';
+			}
+
+			antiincendios = resultados.estadoIncendio;
+			if(resultados.estadoIncendio){
+				document.getElementById('estadoAntiincendios').classList.remove('off');
+				document.getElementById('estadoAntiincendios').classList.add('on');
+				document.getElementById('estadoAntiincendios').textContent = 'Encendido';
+			}else{
+				document.getElementById('estadoAntiincendios').classList.remove('on');
+				document.getElementById('estadoAntiincendios').classList.add('off');
+				document.getElementById('estadoAntiincendios').textContent = 'Apagado';
+			}
+		}
+
+
+
+		function actualizarHistorial(registro){
+			var histo = document.getElementById('historial');
+			while (histo.firstChild) 
+				histo.removeChild(histo.firstChild); 
+
+			var num = registro.length;
+			for(var i=num-15; i<num; i++) {
+				var listElement = document.createElement('li');
+				listElement.innerHTML = "=> " + registro[i].change + ", Fecha: " + registro[i].time;
+				histo.appendChild(listElement);
+			}
+		}
+
+		function actualizarAlarmas(alarmas){
+			var alarma = document.getElementById('alarmas');
+			while (alarma.firstChild) 
+				alarma.removeChild(alarma.firstChild);
+
+			if(alarmas.length > 0){
+				var num = alarmas.length;
+				for(var i=0; i<num; i++) {
+					var listElement = document.createElement('li');
+					listElement.innerHTML = alarmas[i];
+					alarma.appendChild(listElement);
+				}
+			}	
+		}
+
+
+		function apagarAireAcondicionado(){
+			var fecha = new Date();
+			var datos;
+			if(aireacondicionado){
+				datos = { client: id, port: port, time: fecha,  change: "Apaga aire acondicionado"};
+			} else {
+				datos = { client: id, port: port, time: fecha,  change: "Enciende aire acondicionado"};
+			}
+			socket.emit('AC', {datos} );
+			return false;
+		}
+
+		function bajarPersiana(){
+			var fecha = new Date();
+			var datos;
+			if(persiana){
+				datos = { client: id, port: port, time: fecha,  change: "Abre la persiana"};
+			} else {
+				datos = { client: id, port: port, time: fecha,  change: "Cierra la persiana"};
+			}
+
+			socket.emit('persiana', {datos});
+			return false;
+		}
+
+		function apagarSistemaIncendios(){
+			var fecha = new Date();
+			var datos;
+			if(antiincendios){
+				datos = { client: id, port: port, time: fecha,  change: "Desactiva sistema antiincendios"};
+			} else {
+				datos = { client: id, port: port, time: fecha,  change: "Activa sistema antiincendios"};
+			}
+			socket.emit('humo', {datos});
+			return false;
+		}
+
+
+
+		socket.on('connect', function(){
+			socket.emit('output-evt', '');
+		});
+
+		socket.on('my-address', function(data) {
+			host = data.host;
+			port = data.port;
+			id = data.id;
+		});
+
+		socket.on('output-evt', function(data) {
+			console.log('Recibo datos actualizados por conexion');
+			actualizarValores(data);
+			socket.emit('obtenerHistorial', {});
+			socket.emit('all-alarm', {});
+		});
+
+		socket.on('all-values', function(data) {
+			console.log('Recibo datos actualizados');
+			actualizarValores(data);
+			socket.emit('obtenerHistorial', {});
+			socket.emit('all-alarm', {});
+		});
+
+		socket.on('all-alarm', function(data) {
+			actualizarAlarmas(data);
+		});
+
+		socket.on('obtenerHistorial', function(data) {
+			actualizarHistorial(data);
+		});
+
+		socket.on('disconnect', function() {
+			actualizarValores("");
+		});
+
+	</script>
+</html>

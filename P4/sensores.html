@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PANEL DE CONTROL DE SENSORES</title>
+	<link rel="stylesheet" type="text/css" href="css/sensores.css">
+</head>
+
+<body>
+		<div class="container">
+			<div class="recuadro">
+				<h2>PANEL DE CONTROL DE SENSORES</h2>
+
+				<div class="form-container">
+					<form action="javascript:void(0);" onsubmit="javascript:enviarTemperatura();">
+						<label for="temperatura">Introduce Temperatura</label>
+						<input type="text" id="temperaturaNueva" placeholder="Ingrese la temperatura">
+						<input type="submit" value="Enviar Temperatura"></input>
+					</form>
+				
+					<form action="javascript:void(0);" onsubmit="javascript:enviarLuminosidad();">
+						<label for="luminosidad">Introduce Luminosidad</label>
+						<input type="text" id="luminosidadNueva" placeholder="Ingrese la luminosidad">
+						<input type="submit" value="Enviar Luminosidad"></input>
+					</form>
+
+					<form action="javascript:void(0);" onsubmit="javascript:enviarHumo();">
+						<label for="humo">Introduce Humo</label>
+						<input type="text" id="humoNueva" placeholder="Ingrese humo">
+						<input type="submit" value="Enviar humo"></input>
+					</form>
+				</div>
+
+				<ul>
+					<span>Estado de los sensores</span>
+					<li>Temperatura: <p id="temperatura">25</p>ºC</li>
+					<li>Luminosidad: <p id="luminosidad">50</p></li>
+					<li>Cantidad humo: <p id="humo">0</p></li>
+				</ul>
+				
+				
+				<ul>
+					<span>Estado de los actuadores</span>
+					<li>Aire acondicionado: <p id="estadoAire" class="off"> Apagado</p></li>
+					<li>Persiana: <p id="estadoPersiana" class="off"> Apagado</p></li>
+					<li>Sensor de incendios: <p id="estadoAntiincendios" class="off"> Apagado</p></li>
+				</ul>
+					
+			</div>
+		</div>
+
+</body>
+
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+
+	var socket = io.connect("http://localhost:8080"); 
+ 	var host = undefined;
+	var port = undefined;
+	var id = undefined;
+	var luminosidad;
+	var temperatura;
+	var humo;
+
+
+	function actualizarValores(resultados){
+		document.getElementById('temperatura').innerHTML = resultados.temperatura ;
+		temperatura = resultados.temperatura;
+		
+		document.getElementById('luminosidad').innerHTML = resultados.luminosidad ;
+		luminosidad = resultados.luminosidad;
+
+		document.getElementById('humo').innerHTML = Math.max(parseFloat(resultados.humo), 0) ;
+		humo = Math.max(parseFloat(resultados.humo), 0) ;
+
+		if(resultados.estadoAC){
+			document.getElementById('estadoAire').classList.remove('off');
+			document.getElementById('estadoAire').classList.add('on');
+			document.getElementById('estadoAire').textContent = 'Encendido';
+		} else {
+			document.getElementById('estadoAire').classList.remove('on');
+			document.getElementById('estadoAire').classList.add('off');
+			document.getElementById('estadoAire').textContent = 'Apagado';
+		}
+
+		if(resultados.estadoPersiana){
+			document.getElementById('estadoPersiana').classList.remove('off');
+			document.getElementById('estadoPersiana').classList.add('on');
+			document.getElementById('estadoPersiana').textContent = 'Cerrada';
+		} else {
+			document.getElementById('estadoPersiana').classList.remove('on');
+			document.getElementById('estadoPersiana').classList.add('off');
+			document.getElementById('estadoPersiana').textContent = 'Abierta';
+		}
+
+		if(resultados.estadoIncendio){
+			document.getElementById('estadoAntiincendios').classList.remove('off');
+			document.getElementById('estadoAntiincendios').classList.add('on');
+			document.getElementById('estadoAntiincendios').textContent = 'Encendido';
+		} else {
+			document.getElementById('estadoAntiincendios').classList.remove('on');
+			document.getElementById('estadoAntiincendios').classList.add('off');
+			document.getElementById('estadoAntiincendios').textContent = 'Apagado';
+		}
+	}
+
+	function enviarTemperatura(){
+		var temp = document.getElementById("temperaturaNueva").value;
+		document.getElementById("temperaturaNueva").value = "";
+		var fecha = new Date();
+		var datos = {client: id, port: port, time: fecha, change: "Cambio de temperatura a " + temp};
+		socket.emit('sensor-changes',  {temperaturaNew: temp, luminosidadNew: luminosidad, humoNueva: humo, datos: datos} );
+		return false;
+	}
+
+	function enviarLuminosidad(){
+		var lum = document.getElementById("luminosidadNueva").value;
+		document.getElementById("luminosidadNueva").value = "";
+		var fecha = new Date();
+		var datos = {client: id, port: port, time: fecha, change: "Cambio de luminosidad a " + lum};
+		socket.emit('sensor-changes',  {temperaturaNew: temperatura, luminosidadNew: lum, humoNueva: humo, datos: datos} );
+		return false;
+	}
+
+	function enviarHumo(){
+		var humo = Math.max(document.getElementById("humoNueva").value, 0);
+		document.getElementById("humoNueva").value = "";
+		var fecha = new Date();
+		var datos = {client: id, port: port, time: fecha, change: "Cambia la cantidad de humo a " + humo};
+		socket.emit('sensor-changes',  {temperaturaNew: temperatura, luminosidadNew: luminosidad, humoNueva: humo, datos: datos} );
+		return false;
+	}
+
+
+	socket.on('connect', function(){
+		socket.emit('output-evt', 'Hola Servicio!');
+	});
+
+	socket.on('my-address', function(data) {
+		host = data.host;
+		port = data.port;
+		id = data.id;
+	});
+
+	socket.on('output-evt', function(data) {
+		console.log('Recibo datos actualizados por conexion');
+		actualizarValores(data);
+	});
+
+	socket.on('all-values', function(data) {
+		console.log('Recibo datos actualizados');
+		actualizarValores(data);
+	});
+
+	socket.on('disconnect', function() {
+		actualizarValores("");
+	});
+
+</script>
+
+</html>

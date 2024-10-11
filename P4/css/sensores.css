@@ -1,0 +1,145 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 0px;
+    margin: 0;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+.container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    background: #79bdd8;
+}
+
+.recuadro {
+    width: 80vw;
+    background: #edf5f4;
+    border-radius: 10px;
+    padding: 30px 30px 30px 30px;
+    box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.3); 
+    margin-top: -30px;
+}
+
+h2 {
+    color: rgb(0, 0, 0);
+    text-align: center;
+    margin-bottom: 10px;
+    margin-top: 0px;
+    background-color: #fbf277;
+    padding: 10px 10px;
+    border-radius: 10px;
+
+}
+
+form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+    color: #000000;
+}
+
+input[type="text"] {
+    margin-bottom: 15px;
+}
+
+
+input[type="text"],
+input[type="submit"],
+input[type="button"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #a8a8a8;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+input[type="submit"],
+input[type="button"] {
+    background-color: #efe672;
+    color: rgb(0, 0, 0);
+    border: none;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover ,
+input[type="button"]:hover {
+    background-color: #d4d693;
+}
+
+.form-container {
+    display: flex;
+    gap: 30px; 
+
+}
+
+ul {
+    padding: 0;
+    margin-top: 20px;
+}
+
+span {
+    color: #6b6e15;
+    font-size:larger;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+li {
+    list-style-type: none;
+    background: #ffffff;
+    margin: 15px 0; 
+    padding: 10px; 
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.off {
+    color: rgb(188, 0, 0);
+}
+
+.on {
+    color: rgb(26, 255, 0);
+}
+
+
+li p {
+    display: inline; 
+}
+
+
+input {
+    outline: none;
+    border: none;
+}
+
+input:hover {
+    cursor: pointer;
+}
+
+.historial {
+    max-height: 150px; 
+    overflow-y: auto; 
+    padding: 0;
+    margin: 0;
+    list-style-type: none; 
+}
+
+
